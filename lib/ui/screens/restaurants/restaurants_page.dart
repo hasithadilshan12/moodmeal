@@ -274,7 +274,7 @@ class _RestaurantsPageState extends ConsumerState<RestaurantsPage> {
             const SizedBox(height: 16),
           ],
           EmptyState(
-            emoji: nearby.query.isNotEmpty ? 'ðŸ”' : 'ðŸ½ï¸',
+            emoji: nearby.query.isNotEmpty ? '🔍' : '🍽️',
             title: nearby.query.isNotEmpty
                 ? t.t('rest.noResults')
                 : t.t('rest.emptyNearby'),
@@ -403,7 +403,7 @@ class _StartPrompt extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('ðŸ“', style: TextStyle(fontSize: 30)),
+              const Text('📍', style: TextStyle(fontSize: 30)),
               const SizedBox(height: 10),
               Text(
                 t.t('rest.pickCityHint'),
@@ -505,7 +505,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('ðŸ“¡', style: TextStyle(fontSize: 40)),
+            const Text('📡', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 12),
             Text(
               t.t('rest.errorTitle'),

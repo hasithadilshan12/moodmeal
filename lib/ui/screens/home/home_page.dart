@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,7 +24,16 @@ class HomePage extends ConsumerWidget {
     final name = controller.profile?.name.split(' ').first ?? 'Friend';
     final today = controller.todayEntry;
     final mood = today?.mood ?? controller.lastEntry?.mood ?? Mood.calm;
-    final suggestion = Catalog.mealsForMood(mood).first;
+    // Respect the profile's allergies and avoid list, but never crash or show a
+    // blank card when those filters remove every meal.
+    final preferred = Catalog.mealsForMood(
+      mood,
+      allergies: controller.profile?.allergies ?? const [],
+      avoid: controller.profile?.avoid ?? const [],
+    );
+    final suggestion = preferred.isNotEmpty
+        ? preferred.first
+        : Catalog.mealsForMood(mood).first;
     final tip = Catalog.tips[(DateTime.now().day - 1) % Catalog.tips.length];
     final nearby = ref.watch(nearbyProvider);
     final readNotifs = ref.watch(readNotifsProvider);

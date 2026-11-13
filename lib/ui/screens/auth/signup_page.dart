@@ -42,18 +42,28 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       final t = context.l10n;
       await showDialog<void>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: Text(t.t('auth.confirmEmailTitle')),
           content: Text(t.t('auth.confirmEmail')),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await ref.read(appControllerProvider).continueAsDemo();
+                if (!mounted) return;
+                context.go('/home');
+              },
+              child: Text(t.t('auth.demo')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(t.t('common.done')),
             ),
           ],
         ),
       );
       if (!mounted) return;
+      if (ref.read(appControllerProvider).isSignedIn) return;
       context.go('/login');
       return;
     }
@@ -190,18 +200,20 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       onPressed: busy ? null : _submit,
                     ),
                     const SizedBox(height: 14),
-                    GoogleSignInButton(
-                      key: const Key('signup-google'),
-                      label: t.t('auth.google'),
-                      busy: busy,
-                      onPressed: _google,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      t.t('auth.googleHint'),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    if (controller.isRemote) ...[
+                      GoogleSignInButton(
+                        key: const Key('signup-google'),
+                        label: t.t('auth.google'),
+                        busy: busy,
+                        onPressed: _google,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t.t('auth.googleHint'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

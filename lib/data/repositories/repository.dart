@@ -32,6 +32,16 @@ class GoogleProviderDisabled implements Exception {
   const GoogleProviderDisabled();
 }
 
+/// Builds an [AppSession] from a Supabase user. Shared with the controller so
+/// an OAuth callback that arrives after the login screen can adopt the session.
+AppSession sessionFromSupabaseUser(User user) {
+  final name = (user.userMetadata?['name'] as String?) ??
+      (user.userMetadata?['full_name'] as String?) ??
+      user.email?.split('@').first ??
+      'Friend';
+  return AppSession(email: user.email ?? '', name: name);
+}
+
 abstract class AppRepository {
   bool get isRemote;
 
@@ -278,13 +288,7 @@ class SupabaseRepository implements AppRepository {
   @override
   bool get isRemote => true;
 
-  AppSession _sessionFrom(User user) {
-    final name = (user.userMetadata?['name'] as String?) ??
-        (user.userMetadata?['full_name'] as String?) ??
-        user.email?.split('@').first ??
-        'Friend';
-    return AppSession(email: user.email ?? '', name: name);
-  }
+  AppSession _sessionFrom(User user) => sessionFromSupabaseUser(user);
 
   @override
   Future<AppSession?> restoreSession() async {

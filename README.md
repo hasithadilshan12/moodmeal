@@ -71,6 +71,11 @@ can decline and choose a city instead.
 Pick **Continue in demo mode** on the login screen. You can also create a local
 account — in demo mode the credentials never leave the device.
 
+Demo mode works in cloud builds too: when Supabase is configured the login
+screen still offers it, and the app then runs entirely on-device (the button
+label says so). Signing out returns to the cloud login. This is the path friends
+should use when they do not have a confirmed account yet.
+
 ### Tests
 
 ```bash

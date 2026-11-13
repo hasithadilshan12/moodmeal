@@ -158,6 +158,7 @@ class Catalog {
           'A little joy with your food is part of mindful eating, not against it.',
       whySi: 'ආහාරයේ පොඩි සතුටක් තිබීම සිහිකල්පනා ආහාරයට විරුද්ධ නැත.',
       allergens: ['eggs', 'gluten'],
+      avoidTags: ['fried', 'oily'],
       cuisine: 'cuisine.srilankan',
     ),
     Meal(
@@ -206,6 +207,7 @@ class Catalog {
       why: 'A small, intentional pleasure can soften an intense moment.',
       whySi: 'කුඩා, හිතාමතා ගන්නා රසවින්දනයක් තද හැඟීමක් මෘදු කරයි.',
       allergens: ['dairy'],
+      avoidTags: ['sugary', 'caffeine'],
       cuisine: 'cuisine.bakery',
     ),
     Meal(
@@ -231,6 +233,7 @@ class Catalog {
       why: 'A pause in a cup — warmth and L-theanine for a calmer system.',
       whySi: 'කෝප්පයක ඇති විරාමයක් — උණුසුම සහ සන්සුන් බව.',
       allergens: [],
+      avoidTags: ['caffeine', 'sugary'],
       cuisine: 'cuisine.cafe',
     ),
     Meal(
@@ -301,6 +304,7 @@ class Catalog {
       why: 'Bright flavour and quick energy for a low-energy morning.',
       whySi: 'වෙහෙසකර උදෑසනකට දීප්තිමත් රසය සහ ඉක්මන් ශක්තිය.',
       allergens: ['dairy'],
+      avoidTags: ['sugary'],
       cuisine: 'cuisine.cafe',
     ),
     Meal(
@@ -347,6 +351,7 @@ class Catalog {
       why: 'Protein-rich and satisfying when frustration makes you restless.',
       whySi: 'ප්‍රෝටීන් බහුල, අපහසු හැඟීම් සමඟ ඉවසීමට උදව් වේ.',
       allergens: ['dairy', 'gluten'],
+      avoidTags: ['spicy'],
       cuisine: 'cuisine.indian',
     ),
     Meal(
@@ -566,12 +571,12 @@ class Catalog {
   }) {
     var list = meals.where((m) {
       if (m.allergens.any(allergies.contains)) return false;
+      // The avoid list must actually filter: previously "avoid red meat" was a
+      // no-op and sugary/caffeine/oily were ignored entirely.
+      if (m.avoidTags.any(avoid.contains)) return false;
       if (filters.contains('veg') && !m.isVegetarian) return false;
       if (filters.contains('quick') && m.minutes > 20) return false;
       if (filters.contains('protein') && m.protein < 20) return false;
-      if (avoid.contains('spicy') && m.id == 'kottu') return false;
-      if (avoid.contains('fried') && m.id == 'kottu') return false;
-      if (avoid.contains('redMeat')) return true;
       return true;
     }).toList();
 

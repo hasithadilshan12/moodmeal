@@ -26,6 +26,7 @@ class Meal {
     required this.whySi,
     this.isVegetarian = false,
     this.allergens = const [],
+    this.avoidTags = const [],
     this.cuisine = 'cuisine.healthy',
   });
 
@@ -50,6 +51,10 @@ class Meal {
   final String whySi;
   final bool isVegetarian;
   final List<String> allergens;
+
+  /// Preference keys from the "foods you prefer to avoid" list (`spicy`,
+  /// `fried`, `oily`, `sugary`, `caffeine`, `redMeat`).
+  final List<String> avoidTags;
   final String cuisine;
 
   LinearGradient get gradient => LinearGradient(

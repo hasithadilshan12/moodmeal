@@ -108,6 +108,10 @@ class AppLocalizations {
       'No account needed — explore freely.',
       'ගිණුමක් අවශ්‍ය නැත — නිදහසේ බලන්න.'
     ],
+    'auth.demoLocalHint': [
+      'Demo data stays on this device only.',
+      'නිදර්ශන දත්ත මෙම උපාංගයේ පමණක් රැඳේ.'
+    ],
     'auth.or': ['or', 'හෝ'],
     'auth.google': ['Continue with Google', 'Google සමඟ ඉදිරියට'],
     'auth.googleHint': [

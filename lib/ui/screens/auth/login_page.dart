@@ -36,12 +36,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (error == AppController.needsEmailConfirmation) {
       await showDialog<void>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: Text(context.l10n.t('auth.confirmEmailTitle')),
           content: Text(context.l10n.t('auth.confirmEmail')),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _demo();
+              },
+              child: Text(context.l10n.t('auth.demo')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(context.l10n.t('common.done')),
             ),
           ],
@@ -198,46 +205,49 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       onPressed: busy ? null : _submit,
                     ),
                     const SizedBox(height: 14),
-                    GoogleSignInButton(
-                      key: const Key('login-google'),
-                      label: t.t('auth.google'),
-                      busy: busy,
-                      onPressed: _google,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      t.t('auth.googleHint'),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    if (!controller.isRemote) ...[
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          const Expanded(child: Divider()),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              t.t('auth.or'),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                          const Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      OutlinedButton.icon(
-                        onPressed: busy ? null : _demo,
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-                        label: Text(t.t('auth.demo')),
+                    if (controller.isRemote) ...[
+                      GoogleSignInButton(
+                        key: const Key('login-google'),
+                        label: t.t('auth.google'),
+                        busy: busy,
+                        onPressed: _google,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        t.t('auth.demoHint'),
+                        t.t('auth.googleHint'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            t.t('auth.or'),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      key: const Key('login-demo'),
+                      onPressed: busy ? null : _demo,
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                      label: Text(t.t('auth.demo')),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      controller.isRemote
+                          ? t.t('auth.demoLocalHint')
+                          : t.t('auth.demoHint'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 18),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

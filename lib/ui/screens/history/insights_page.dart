@@ -45,7 +45,11 @@ class InsightsPage extends ConsumerWidget {
                         const SizedBox(height: 18),
                         _CheckInTimes(entries: entries),
                         const SizedBox(height: 22),
-                        _MoodMeals(top: top),
+                        _MoodMeals(
+                          top: top,
+                          allergies: controller.profile?.allergies ?? const [],
+                          avoid: controller.profile?.avoid ?? const [],
+                        ),
                         const SizedBox(height: 18),
                         _ReflectionCard(
                           onTap: () => context.push('/mood/checkin'),
@@ -514,14 +518,27 @@ class _TimeBucket {
 }
 
 class _MoodMeals extends StatelessWidget {
-  const _MoodMeals({required this.top});
+  const _MoodMeals({
+    required this.top,
+    this.allergies = const [],
+    this.avoid = const [],
+  });
 
   final Mood top;
+  final List<String> allergies;
+  final List<String> avoid;
 
   @override
   Widget build(BuildContext context) {
     final t = context.l10n;
-    final meals = Catalog.mealsForMood(top).take(2).toList();
+    final meals = Catalog.mealsForMood(
+      top,
+      allergies: allergies,
+      avoid: avoid,
+    ).take(2).toList();
+
+    // Honest empty state: the profile filters may leave nothing to suggest.
+    if (meals.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
