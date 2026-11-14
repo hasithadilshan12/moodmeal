@@ -18,7 +18,7 @@ void main() {
       (tester) async {
     SharedPreferences.setMockInitialValues({
       'flutter.mm.onboarded': true,
-      'flutter.mm.session.email': 'cameron@demo.moodmeal',
+      'flutter.mm.session.email': 'nimal@example.com',
       'flutter.mm.locale': 'si',
     });
     await Store.init();

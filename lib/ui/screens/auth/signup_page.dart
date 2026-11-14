@@ -47,15 +47,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           content: Text(t.t('auth.confirmEmail')),
           actions: [
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                await ref.read(appControllerProvider).continueAsDemo();
-                if (!mounted) return;
-                context.go('/home');
-              },
-              child: Text(t.t('auth.demo')),
-            ),
-            TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(t.t('common.done')),
             ),
@@ -63,7 +54,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         ),
       );
       if (!mounted) return;
-      if (ref.read(appControllerProvider).isSignedIn) return;
       context.go('/login');
       return;
     }

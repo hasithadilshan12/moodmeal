@@ -218,25 +218,39 @@ class _RestaurantsPageState extends ConsumerState<RestaurantsPage> {
   Widget _body(NearbyController nearby) {
     final t = context.l10n;
 
-    if (!nearby.hasOrigin) {
-      return _StartPrompt(
-        nearby: nearby,
-        message: nearby.locationProblem == LocationProblemKind.blockedForever
-            ? t.t('rest.permBlocked')
-            : nearby.locationProblem != null
-                ? t.t('rest.permDenied')
-                : null,
-        onUseLocation: () => _useLocation(nearby),
-        onPickCity: () => _pickCity(nearby),
-      );
-    }
-
+    // Check the loading stages first: on the first "Use my location" tap there
+    // is still no origin, so the old order returned the start prompt again and
+    // the tap looked like it did nothing.
     if (nearby.stage == NearbyStage.locating ||
         nearby.stage == NearbyStage.loading) {
       return _Loading(
         label: nearby.stage == NearbyStage.locating
             ? t.t('rest.locating')
             : t.t('rest.loading'),
+      );
+    }
+
+    if (!nearby.hasOrigin) {
+      final problem = nearby.locationProblem;
+      final message = switch (problem) {
+        LocationProblemKind.disabled => t.t('rest.permDisabled'),
+        LocationProblemKind.blockedForever => t.t('rest.permBlocked'),
+        LocationProblemKind.denied => t.t('rest.permDenied'),
+        LocationProblemKind.unavailable => t.t('rest.locUnavailable'),
+        null => null,
+      };
+      return _StartPrompt(
+        nearby: nearby,
+        message: message,
+        // Disabled location services and a permanently blocked permission both
+        // need the system settings screen; a plain "denied" is retried here.
+        onOpenSettings: problem == LocationProblemKind.disabled ||
+                problem == LocationProblemKind.blockedForever
+            ? () => nearby.openSystemLocationSettings()
+            : null,
+        settingsLabel: t.t('rest.openSettings'),
+        onUseLocation: () => _useLocation(nearby),
+        onPickCity: () => _pickCity(nearby),
       );
     }
 
@@ -369,12 +383,16 @@ class _StartPrompt extends StatelessWidget {
     required this.message,
     required this.onUseLocation,
     required this.onPickCity,
+    this.onOpenSettings,
+    this.settingsLabel,
   });
 
   final NearbyController nearby;
   final String? message;
   final VoidCallback onUseLocation;
   final VoidCallback onPickCity;
+  final VoidCallback? onOpenSettings;
+  final String? settingsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -422,8 +440,20 @@ class _StartPrompt extends StatelessWidget {
                 label: t.t('rest.useLocation'),
                 icon: Icons.my_location_rounded,
                 height: 48,
-                onPressed: onUseLocation,
+                busy: nearby.stage == NearbyStage.locating,
+                onPressed:
+                    nearby.stage == NearbyStage.locating ? null : onUseLocation,
               ),
+              if (onOpenSettings != null) ...[
+                const SizedBox(height: 6),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: onOpenSettings,
+                    icon: const Icon(Icons.settings_outlined, size: 16),
+                    label: Text(settingsLabel ?? t.t('rest.openSettings')),
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               Center(
                 child: TextButton(
@@ -519,31 +549,48 @@ class _ErrorView extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: onRetry,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.orange,
-                      minimumSize: const Size(0, 44),
-                    ),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: Text(t.t('common.retry')),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final retry = FilledButton.icon(
+                  onPressed: onRetry,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.orange,
+                    minimumSize: const Size(0, 44),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onPickCity,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 44),
-                    ),
-                    icon: const Icon(Icons.location_city_rounded, size: 18),
-                    label: Text(t.t('rest.chooseCity')),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(
+                    t.t('common.retry'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                );
+                final pickCity = OutlinedButton.icon(
+                  onPressed: onPickCity,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                  ),
+                  icon: const Icon(Icons.location_city_rounded, size: 18),
+                  label: Text(
+                    t.t('rest.chooseCity'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+                // Sinhala labels are wider; stack instead of wrapping.
+                if (constraints.maxWidth < 340) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [retry, const SizedBox(height: 10), pickCity],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: retry),
+                    const SizedBox(width: 10),
+                    Expanded(child: pickCity),
+                  ],
+                );
+              },
             ),
             if (onSettings != null) ...[
               const SizedBox(height: 6),

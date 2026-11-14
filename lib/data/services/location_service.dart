@@ -26,15 +26,20 @@ class LocationService {
     if (permission == LocationPermission.denied) {
       throw const LocationProblem(LocationProblemKind.denied);
     }
+    if (permission == LocationPermission.unableToDetermine) {
+      throw const LocationProblem(LocationProblemKind.unavailable);
+    }
 
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.low,
-          timeLimit: Duration(seconds: 15),
+          timeLimit: Duration(seconds: 12),
         ),
       );
       return GeoPoint(position.latitude, position.longitude);
+    } on LocationServiceDisabledException {
+      throw const LocationProblem(LocationProblemKind.disabled);
     } catch (_) {
       // Fall back to the last known fix when the device is slow to lock on.
       final last = await Geolocator.getLastKnownPosition();
@@ -43,7 +48,9 @@ class LocationService {
     }
   }
 
-  Future<bool> openSettings() => Geolocator.openAppSettings();
+  Future<bool> openAppSettings() => Geolocator.openAppSettings();
+
+  Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
 }
 
 enum LocationProblemKind { disabled, denied, blockedForever, unavailable }

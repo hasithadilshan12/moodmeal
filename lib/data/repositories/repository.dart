@@ -10,12 +10,10 @@ import '../seed/catalog.dart';
 import '../services/store.dart';
 
 class AppSession {
-  const AppSession(
-      {required this.email, required this.name, this.isDemo = false});
+  const AppSession({required this.email, required this.name});
 
   final String email;
   final String name;
-  final bool isDemo;
 }
 
 /// Thrown when Supabase is set up to require email confirmation. The account
@@ -31,6 +29,12 @@ class EmailConfirmationRequired implements Exception {
 class GoogleProviderDisabled implements Exception {
   const GoogleProviderDisabled();
 }
+
+/// Where Supabase sends the browser after Google OAuth or an email
+/// confirmation link. The web build returns to its own origin so a deploy
+/// never points at localhost; Android uses the manifest deep link.
+String get authRedirectUrl =>
+    kIsWeb ? Uri.base.origin : 'io.moodmeal.app://login-callback';
 
 /// Builds an [AppSession] from a Supabase user. Shared with the controller so
 /// an OAuth callback that arrives after the login screen can adopt the session.
@@ -49,7 +53,6 @@ abstract class AppRepository {
   Future<AppSession> signIn(String email, String password);
   Future<AppSession> signUp(String name, String email, String password);
   Future<AppSession?> signInWithGoogle();
-  Future<AppSession> continueAsDemo();
   Future<void> signOut();
 
   Future<UserProfile> loadProfile(AppSession session);
@@ -79,11 +82,7 @@ class LocalRepository implements AppRepository {
     if (email == null) return null;
     await Store.claimLegacyData(email);
     final profile = await _readProfile(email);
-    return AppSession(
-      email: email,
-      name: profile.name,
-      isDemo: email.toLowerCase() == Store.demoEmail,
-    );
+    return AppSession(email: email, name: profile.name);
   }
 
   @override
@@ -107,24 +106,10 @@ class LocalRepository implements AppRepository {
   }
 
   @override
-  Future<AppSession> continueAsDemo() async {
-    const email = Store.demoEmail;
-    await Store.setSessionEmail(email);
-    await Store.claimLegacyData(email);
-    if (Store.profileJsonFor(email) == null) {
-      await saveProfile(
-        const UserProfile(name: 'Cameron Wilson', email: email),
-      );
-    }
-    return const AppSession(email: email, name: 'Cameron Wilson', isDemo: true);
-  }
-
-  @override
   Future<void> signOut() => Store.setSessionEmail(null);
 
   @override
   Future<UserProfile> loadProfile(AppSession session) async {
-    await _seedIfNeeded(session.email);
     final profile = await _readProfile(session.email);
     return profile;
   }
@@ -155,7 +140,6 @@ class LocalRepository implements AppRepository {
   @override
   Future<List<MoodEntry>> loadMoods() async {
     final email = _currentEmail;
-    await _seedIfNeeded(email);
     final raw = Store.moodsJsonFor(email);
     if (raw == null) return const [];
     final list = (jsonDecode(raw) as List)
@@ -180,9 +164,7 @@ class LocalRepository implements AppRepository {
     final email = _currentEmail;
     await Store.claimLegacyData(email);
     final raw = Store.favouritesJsonFor(email);
-    if (raw == null) {
-      return email == Store.demoEmail ? {'oatmeal', 'green_tea'} : <String>{};
-    }
+    if (raw == null) return <String>{};
     return (jsonDecode(raw) as List).cast<String>().toSet();
   }
 
@@ -217,65 +199,6 @@ class LocalRepository implements AppRepository {
       _currentEmail,
       jsonEncode(updated.map((e) => e.toJson()).toList()),
     );
-  }
-
-  Future<void> _seedIfNeeded(String email) async {
-    if (email.toLowerCase() != Store.demoEmail) return;
-    if (Store.seedVersionFor(email) >= 1) return;
-    if (Store.moodsJsonFor(email) == null) {
-      final now = DateTime.now();
-      final sample = <MoodEntry>[
-        MoodEntry(
-          id: 'seed-1',
-          mood: Mood.tired,
-          intensity: 3,
-          createdAt: now.subtract(const Duration(days: 6, hours: 2)),
-          tags: const ['work'],
-          note: 'Long day, skipped lunch.',
-        ),
-        MoodEntry(
-          id: 'seed-2',
-          mood: Mood.stressed,
-          intensity: 4,
-          createdAt: now.subtract(const Duration(days: 5, hours: 1)),
-          tags: const ['work', 'sleep'],
-        ),
-        MoodEntry(
-          id: 'seed-3',
-          mood: Mood.calm,
-          intensity: 4,
-          createdAt: now.subtract(const Duration(days: 4)),
-          tags: const ['family'],
-          note: 'Slow morning with tea.',
-        ),
-        MoodEntry(
-          id: 'seed-4',
-          mood: Mood.happy,
-          intensity: 5,
-          createdAt: now.subtract(const Duration(days: 3)),
-          tags: const ['social'],
-        ),
-        MoodEntry(
-          id: 'seed-5',
-          mood: Mood.bored,
-          intensity: 2,
-          createdAt: now.subtract(const Duration(days: 2)),
-          tags: const ['weather'],
-        ),
-        MoodEntry(
-          id: 'seed-6',
-          mood: Mood.calm,
-          intensity: 3,
-          createdAt: now.subtract(const Duration(days: 1)),
-          tags: const ['sleep'],
-        ),
-      ];
-      await Store.setMoodsJsonFor(
-        jsonEncode(sample.map((e) => e.toJson()).toList()),
-        email: email,
-      );
-    }
-    await Store.setSeedVersionFor(email, 1);
   }
 }
 
@@ -314,6 +237,9 @@ class SupabaseRepository implements AppRepository {
       email: email,
       password: password,
       data: {'name': name},
+      // Without this the confirmation link follows the project's Site URL,
+      // which is why it used to land on http://localhost:8080.
+      emailRedirectTo: authRedirectUrl,
     );
     final user = res.user;
     if (user == null) throw const AuthException('Unable to sign up');
@@ -329,12 +255,6 @@ class SupabaseRepository implements AppRepository {
       'email': email,
     });
     return AppSession(email: email, name: name);
-  }
-
-  @override
-  Future<AppSession> continueAsDemo() async {
-    // Remote builds never fabricate users; the caller shows the sign-in screen.
-    throw const AuthException('Demo mode is available offline only.');
   }
 
   @override
@@ -363,7 +283,7 @@ class SupabaseRepository implements AppRepository {
 
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? Uri.base.origin : 'io.moodmeal.app://login-callback',
+      redirectTo: authRedirectUrl,
       authScreenLaunchMode:
           kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
     );

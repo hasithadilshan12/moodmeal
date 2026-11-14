@@ -57,7 +57,6 @@ class ProfilePage extends ConsumerWidget {
                 children: [
                   _ProfileHero(
                     profile: profile,
-                    isDemo: controller.isDemo,
                     onEdit: () => context.push('/profile/edit'),
                     onAvatar: () => context.push('/profile/edit'),
                   ),
@@ -281,13 +280,11 @@ class ProfilePage extends ConsumerWidget {
 class _ProfileHero extends StatelessWidget {
   const _ProfileHero({
     required this.profile,
-    required this.isDemo,
     required this.onEdit,
     required this.onAvatar,
   });
 
   final UserProfile profile;
-  final bool isDemo;
   final VoidCallback onEdit;
   final VoidCallback onAvatar;
 
@@ -385,24 +382,6 @@ class _ProfileHero extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (isDemo) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.line),
-              ),
-              child: Text(
-                '✨ ${t.t('profile.demo')}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontSize: 9.5,
-                      color: AppColors.orangeDeep,
-                    ),
-              ),
-            ),
-          ],
           const SizedBox(height: 14),
           SizedBox(
             width: 168,

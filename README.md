@@ -22,7 +22,7 @@ Built with Flutter for Android, Windows and the web. English and සිංහල
 | **Insights** | Mood distribution donut, lighter/heavier days, time-of-day pattern, meal pairings |
 | **Mindful tips** | 6 short practices, step-by-step detail, "practised" tracking |
 | **Favourites** | Saved meals plus gentle suggestions |
-| **Profile & settings** | Photo upload or emoji avatar, name/email editing, food preferences and allergies, reminder schedule, light/dark/system appearance, language, photo/video credits, sign out |
+| **Profile & settings** | Photo upload or emoji avatar, name editing (sign-in email stays fixed), food preferences and allergies, reminder schedule, light/dark/system appearance, language, photo/video credits, sign out |
 | **Accounts** | Email/password (local or Supabase) and Google sign-in when Supabase is configured |
 | **Notifications** | In-app gentle nudges, unread state, mark-all-read, back navigation |
 | **Polish** | Empty/loading/error states, warm light + dark themes, adaptive text scaling, haptics, keyboard-safe forms |
@@ -30,9 +30,8 @@ Built with Flutter for Android, Windows and the web. English and සිංහල
 The catalogue, recipes and photographs work **offline**. The two optional
 online features are the YouTube walkthrough (opens in the YouTube app/browser)
 and the nearby-restaurant search (OpenStreetMap). Data is stored per account, so
-signing in with a different email never reveals another person's check-ins. The
-shared demo account starts with a week of example check-ins; accounts you create
-start with a clean history and friendly empty states.
+signing in with a different email never reveals another person's check-ins.
+Every account starts with a clean history and friendly empty states.
 
 ---
 
@@ -66,15 +65,13 @@ can decline and choose a city instead.
 > Building for web? Browsers only allow geolocation on `https://` and
 > `http://localhost`, which the development server already satisfies.
 
-### Demo account
+### Accounts
 
-Pick **Continue in demo mode** on the login screen. You can also create a local
-account — in demo mode the credentials never leave the device.
-
-Demo mode works in cloud builds too: when Supabase is configured the login
-screen still offers it, and the app then runs entirely on-device (the button
-label says so). Signing out returns to the cloud login. This is the path friends
-should use when they do not have a confirmed account yet.
+Create an account with email and password, or continue with Google when the
+build is connected to Supabase. Email confirmation is on by default in Supabase,
+so new accounts must open the confirmation email before signing in. In a build
+without Supabase credentials the account stays on the device and no email is
+sent.
 
 ### Tests
 
@@ -175,7 +172,7 @@ lib/
   data/
     models/                Meal, Recipe, MealVideo, MealLog,
                            Tip, UserProfile, MoodEntry
-    seed/catalog.dart      17 meals, tips and friendly demo content
+    seed/catalog.dart      17 meals, tips and friendly content
     seed/recipes.dart      bilingual ingredients, steps and cook's tips
     seed/media.dart        dish photo path, verified video id, search term
     repositories/          LocalRepository + SupabaseRepository
@@ -201,7 +198,7 @@ docs/figma-analysis.md     design audit and gap analysis
   driven by controller state.
 - **Persistence** — one `AppRepository` interface, two implementations.
 - **Local accounts** — profile, moods, favourites and read notifications are
-  namespaced by email; only the demo identity is pre-seeded.
+  namespaced by email and every account starts empty.
 - **Localisation** — a single table in `app_localizations.dart` (index 0
   English, index 1 Sinhala). Missing keys fall back to the key itself, which
   makes incremental translation safe. The app registers Flutter's

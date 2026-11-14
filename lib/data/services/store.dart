@@ -23,10 +23,6 @@ class Backend {
 class Store {
   Store._();
 
-  /// The shared demo identity gets sample data; real local accounts start
-  /// empty so their charts and history reflect only their own check-ins.
-  static const demoEmail = 'cameron@demo.moodmeal';
-
   static const _kOnboarded = 'mm.onboarded';
   static const _kSession = 'mm.session.email';
   static const _kProfile = 'mm.profile';
@@ -37,8 +33,6 @@ class Store {
   static const _kMealLogs = 'mm.meal.logs';
   static const _kLocale = 'mm.locale';
   static const _kThemeMode = 'mm.theme.mode';
-  static const _kSeedVersion = 'mm.seed';
-  static const _kLocalDemo = 'mm.demo.local';
 
   /// Local data is namespaced by account so signing out and signing in with a
   /// different email never exposes another person's moods or favourites.
@@ -125,22 +119,6 @@ class Store {
   static Future<void> setThemeMode(String mode) =>
       _prefs.setString(_kThemeMode, mode);
 
-  static int seedVersionFor(String email) =>
-      _prefs.getInt(_key(_kSeedVersion, email)) ?? 0;
-  static Future<void> setSeedVersionFor(String email, int value) =>
-      _prefs.setInt(_key(_kSeedVersion, email), value);
-
-  /// True while a cloud build is running in on-device demo mode, so the next
-  /// launch restores the local demo instead of asking for a password.
-  static bool get localDemoMode => _prefs.getBool(_kLocalDemo) ?? false;
-  static Future<void> setLocalDemoMode(bool value) async {
-    if (value) {
-      await _prefs.setBool(_kLocalDemo, true);
-    } else {
-      await _prefs.remove(_kLocalDemo);
-    }
-  }
-
   /// Moves data written by older builds (single global keys) into the signed-in
   /// account's namespace. Safe to call on every launch: each key is moved at
   /// most once and the legacy key is removed afterwards.
@@ -150,15 +128,6 @@ class Store {
     await _claimString(_kFavourites, email);
     await _claimStringList(_kPractised, email);
     await _claimStringList(_kReadNotifs, email);
-
-    final legacySeed = _prefs.getInt(_kSeedVersion);
-    if (legacySeed != null) {
-      final seedKey = _key(_kSeedVersion, email);
-      if (!_prefs.containsKey(seedKey)) {
-        await _prefs.setInt(seedKey, legacySeed);
-      }
-      await _prefs.remove(_kSeedVersion);
-    }
   }
 
   static Future<void> _claimString(String base, String email) async {

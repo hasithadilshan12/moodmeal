@@ -32,10 +32,6 @@ class _FakeCloudRepository implements AppRepository {
   Future<AppSession?> signInWithGoogle() async => null;
 
   @override
-  Future<AppSession> continueAsDemo() async =>
-      throw StateError('Demo mode is available offline only.');
-
-  @override
   Future<void> signOut() async {}
 
   @override
@@ -91,46 +87,42 @@ void main() {
     await Store.init();
   });
 
-  testWidgets('demo mode is offered in cloud builds too', (tester) async {
+  testWidgets('demo mode is gone from cloud builds', (tester) async {
     final controller = AppController(_FakeCloudRepository());
     await tester.pumpWidget(_app(controller));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('login-demo')), findsOneWidget);
+    expect(find.byKey(const Key('login-demo')), findsNothing);
+    expect(find.text('Continue in demo mode'), findsNothing);
     expect(find.byKey(const Key('login-google')), findsOneWidget);
-    expect(find.text('Demo data stays on this device only.'), findsOneWidget);
   });
 
-  testWidgets('cloud build demo falls back to on-device data', (tester) async {
-    final controller = AppController(_FakeCloudRepository());
-    final error = await controller.continueAsDemo();
-
-    expect(error, isNull);
-    expect(controller.isSignedIn, isTrue);
-    expect(controller.isDemo, isTrue);
-    // The controller switched to the local repository for data.
-    expect(controller.isRemote, isFalse);
-    expect(Store.localDemoMode, isTrue);
-    expect(controller.moods, isNotEmpty);
-  });
-
-  testWidgets('signing out of a demo returns to the cloud repository',
+  testWidgets('an offline build hides the Google button and demo mode',
       (tester) async {
-    final controller = AppController(_FakeCloudRepository());
-    await controller.continueAsDemo();
-    await controller.signOut();
-
-    expect(controller.isSignedIn, isFalse);
-    expect(controller.isRemote, isTrue);
-    expect(Store.localDemoMode, isFalse);
-  });
-
-  testWidgets('an offline build hides the Google button', (tester) async {
     final controller = AppController(LocalRepository());
     await tester.pumpWidget(_app(controller));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('login-google')), findsNothing);
-    expect(find.byKey(const Key('login-demo')), findsOneWidget);
+    expect(find.byKey(const Key('login-demo')), findsNothing);
+  });
+
+  test('the auth redirect target is never localhost', () {
+    expect(authRedirectUrl, isNotEmpty);
+    expect(authRedirectUrl.contains('localhost'), isFalse);
+  });
+
+  test('signing out clears the local session', () async {
+    final repo = LocalRepository();
+    await repo.signUp('Nimal', 'nimal@example.com', 'secret123');
+
+    final controller = AppController(repo);
+    await controller.bootstrap();
+    expect(controller.isSignedIn, isTrue);
+
+    await controller.signOut();
+    expect(controller.isSignedIn, isFalse);
+    expect(controller.profile, isNull);
+    expect(controller.moods, isEmpty);
   });
 }

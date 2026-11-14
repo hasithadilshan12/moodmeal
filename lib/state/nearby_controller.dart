@@ -141,7 +141,11 @@ class NearbyController extends ChangeNotifier {
   }
 
   Future<void> openSystemLocationSettings() async {
-    await _location.openSettings();
+    if (locationProblem == LocationProblemKind.disabled) {
+      await _location.openLocationSettings();
+    } else {
+      await _location.openAppSettings();
+    }
   }
 }
 

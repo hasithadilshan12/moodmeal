@@ -22,20 +22,12 @@ final appControllerProvider = ChangeNotifierProvider<AppController>((ref) {
 });
 
 class AppController extends ChangeNotifier {
-  AppController(this._cloudRepository)
-      : _repository = _cloudRepository,
-        _localRepository = LocalRepository() {
+  AppController(this._repository) {
     _listenToAuthChanges();
   }
 
-  /// The configured repository from [repositoryProvider]. Kept so the app can
-  /// hop back to cloud mode after a local demo.
-  final AppRepository _cloudRepository;
-  final LocalRepository _localRepository;
-
-  /// The repository currently serving data. In a cloud build this switches to
-  /// the local one while the user explores the demo.
-  AppRepository _repository;
+  /// The repository serving data (Supabase when configured, otherwise local).
+  final AppRepository _repository;
 
   StreamSubscription<AuthState>? _authSubscription;
   bool _disposed = false;
@@ -65,7 +57,7 @@ class AppController extends ChangeNotifier {
   /// firing after the code exchange — which raced and stranded users on the
   /// login screen.
   void _listenToAuthChanges() {
-    if (!_cloudRepository.isRemote || !Backend.isConfigured) return;
+    if (!_repository.isRemote || !Backend.isConfigured) return;
     _authSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((state) async {
       final user = state.session?.user;
@@ -76,8 +68,6 @@ class AppController extends ChangeNotifier {
       }
       if (user.email == session?.email) return;
       final adopted = sessionFromSupabaseUser(user);
-      _repository = _cloudRepository;
-      await Store.setLocalDemoMode(false);
       session = adopted;
       try {
         await _loadUserData();
@@ -91,7 +81,6 @@ class AppController extends ChangeNotifier {
   }
 
   bool get isSignedIn => session != null;
-  bool get isDemo => session?.isDemo ?? !_repository.isRemote;
   bool get isRemote => _repository.isRemote;
 
   List<MoodEntry> get recentMoods => moods;
@@ -120,11 +109,6 @@ class AppController extends ChangeNotifier {
       onboarded = Store.onboarded;
       localeCode = Store.locale;
       themeMode = themeModeFromName(Store.themeMode);
-      // A cloud build that was running the on-device demo keeps going offline
-      // until the user signs out.
-      if (_cloudRepository.isRemote && Store.localDemoMode) {
-        _repository = _localRepository;
-      }
       session = await _repository.restoreSession();
       if (session != null) {
         profile = await _repository.loadProfile(session!);
@@ -206,27 +190,8 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<String?> continueAsDemo() async {
-    return _run(() async {
-      // Cloud builds still offer the demo: it runs entirely on this device, so
-      // friends can try the app without an account or a confirmed email.
-      if (_repository.isRemote) {
-        _repository = _localRepository;
-        await Store.setLocalDemoMode(true);
-      }
-      session = await _repository.continueAsDemo();
-      onboarded = true;
-      await Store.setOnboarded(true);
-      await _loadUserData();
-    });
-  }
-
   Future<void> signOut() async {
     await _repository.signOut();
-    if (!identical(_repository, _cloudRepository)) {
-      _repository = _cloudRepository;
-      await Store.setLocalDemoMode(false);
-    }
     session = null;
     profile = null;
     moods = const [];
@@ -341,8 +306,6 @@ class AppController extends ChangeNotifier {
     try {
       final next = await _repository.signInWithGoogle();
       if (next != null) {
-        _repository = _cloudRepository;
-        await Store.setLocalDemoMode(false);
         session = next;
         await _loadUserData();
       }

@@ -103,15 +103,6 @@ class AppLocalizations {
       'A few details and your first check-in awaits.',
       'තොරතුරු කීපයක් පමණයි — ඔබේ පළමු සටහන බලා සිටී.'
     ],
-    'auth.demo': ['Continue in demo mode', 'නිදර්ශන ලෙස ඉදිරියට'],
-    'auth.demoHint': [
-      'No account needed — explore freely.',
-      'ගිණුමක් අවශ්‍ය නැත — නිදහසේ බලන්න.'
-    ],
-    'auth.demoLocalHint': [
-      'Demo data stays on this device only.',
-      'නිදර්ශන දත්ත මෙම උපාංගයේ පමණක් රැඳේ.'
-    ],
     'auth.or': ['or', 'හෝ'],
     'auth.google': ['Continue with Google', 'Google සමඟ ඉදිරියට'],
     'auth.googleHint': [
@@ -333,6 +324,14 @@ class AppLocalizations {
       'Location is blocked for MoodMeal. Enable it in Settings, or pick your city.',
       'MoodMeal සඳහා ස්ථානය අවහිර කර ඇත. සැකසුම්වලින් සක්‍රීය කරන්න, නැතහොත් නගරය තෝරන්න.'
     ],
+    'rest.permDisabled': [
+      'Location services are turned off on this device. Open settings to turn them on, or pick your city.',
+      'මෙම උපාංගයේ ස්ථාන සේවා අක්‍රීයයි. සක්‍රීය කිරීමට සැකසුම් විවෘත කරන්න, නැතහොත් නගරය තෝරන්න.'
+    ],
+    'rest.locUnavailable': [
+      'Could not get a location fix. Move somewhere with a clearer view of the sky, or pick your city.',
+      'ස්ථානය සොයාගත නොහැකි විය. විවෘත අහසක් ඇති තැනකට යන්න, නැතහොත් නගරය තෝරන්න.'
+    ],
     'rest.openSettings': ['Open settings', 'සැකසුම් විවෘත කරන්න'],
     'rest.noResults': [
       'No restaurants match that search',
@@ -492,8 +491,11 @@ class AppLocalizations {
 
     // Profile / settings
     'profile.title': ['Profile', 'පැතිකඩ'],
-    'profile.demo': ['Demo mode', 'නිරූපණ ප්‍රකාරය'],
     'profile.edit': ['Edit profile', 'පැතිකඩ සංස්කරණය'],
+    'profile.emailLocked': [
+      'Your sign-in email cannot be changed here.',
+      'ඔබේ පිවිසුම් ඊමේල් ලිපිනය මෙතැනින් වෙනස් කළ නොහැක.'
+    ],
     'profile.checkins': ['Check-ins', 'සටහන්'],
     'profile.streak': ['Streak', 'අඛණ්ඩතාව'],
     'profile.saved': ['Saved', 'සුරකින ලද'],
@@ -590,8 +592,8 @@ class AppLocalizations {
       'OpenStreetMap ප්‍රකාශන අයිතිය'
     ],
     'settings.data': [
-      'Your data stays on this device in demo mode.',
-      'නිදර්ශන ප්‍රකාරයේදී ඔබේ දත්ත මෙම උපාංගයේ රැඳේ.'
+      'Your check-ins and favourites stay private to your account.',
+      'ඔබේ සටහන් සහ ප්‍රියතමයන් ඔබේ ගිණුමට පමණක් සීමා වේ.'
     ],
     'settings.theme': ['Appearance', 'පෙනුම'],
     'settings.themeValue': ['Warm light', 'උණුසුම් ආලෝකය'],
@@ -679,8 +681,8 @@ class AppLocalizations {
       'වේලාවක් තෝරාගැනීමට ස්විචය සක්‍රීය කරන්න.'
     ],
     'reminders.permission': [
-      'MoodMeal cannot send system notifications in this demo. Your chosen time is saved and shown here.',
-      'මෙම නිදර්ශනයේදී MoodMealට පද්ධති දැනුම්දීම් යැවිය නොහැක. ඔබ තෝරාගත් වේලාව සුරකිනු ලැබේ.'
+      'MoodMeal does not send system notifications yet. Your chosen time is saved and shown here.',
+      'MoodMeal තවම පද්ධති දැනුම්දීම් යවන්නේ නැත. ඔබ තෝරාගත් වේලාව සුරකිනු ලැබේ.'
     ],
     'reminders.daily': ['Every day', 'දිනපතා'],
     'notifications.today': ['Today', 'අද'],

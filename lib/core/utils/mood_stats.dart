@@ -74,11 +74,18 @@ class MoodStats {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  static bool sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  /// Supabase returns UTC timestamps, so every calendar comparison must happen
+  /// in the user's local time or an 11pm check-in appears on the next day.
+  static bool sameDay(DateTime a, DateTime b) {
+    final x = a.toLocal();
+    final y = b.toLocal();
+    return x.year == y.year && x.month == y.month && x.day == y.day;
+  }
 
-  static DateTime _dateOnly(DateTime value) =>
-      DateTime(value.year, value.month, value.day);
+  static DateTime _dateOnly(DateTime value) {
+    final local = value.toLocal();
+    return DateTime(local.year, local.month, local.day);
+  }
 
   static List<MoodEntry> lastNDays(List<MoodEntry> entries, int n,
       {DateTime? now}) {

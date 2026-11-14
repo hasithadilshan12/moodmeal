@@ -90,7 +90,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         );
     final next = current.copyWith(
       name: _name.text.trim(),
-      email: _email.text.trim(),
+      // Never take the editable field as the identity key.
+      email: controller.session?.email ?? current.email,
       avatar: _avatar,
       photo: _photo,
     );
@@ -288,20 +289,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.done,
-                      enabled: !_saving,
-                      onFieldSubmitted: (_) => _save(),
+                      // The email is the account key in Supabase and in the
+                      // on-device store. Editing it here only desynced the
+                      // profile from the sign-in identity, so it is read-only.
+                      readOnly: true,
                       decoration: InputDecoration(
                         hintText: 'you@example.com',
+                        helperText: t.t('profile.emailLocked'),
                         prefixIcon: Icon(Icons.mail_outline_rounded,
                             size: 20, color: AppColors.muted),
                       ),
-                      validator: (value) {
-                        final v = value?.trim() ?? '';
-                        final ok =
-                            RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v);
-                        return ok ? null : t.t('auth.errEmail');
-                      },
                     ),
                     const SizedBox(height: 18),
                     Row(

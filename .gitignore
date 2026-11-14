@@ -29,3 +29,6 @@ Thumbs.db
 
 # Local backend credentials (publishable, but keep per-machine config out of git)
 supabase.json
+
+# Release artefacts (APKs/zip) are published as GitHub release assets
+.dist/

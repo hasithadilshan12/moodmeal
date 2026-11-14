@@ -41,13 +41,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           content: Text(context.l10n.t('auth.confirmEmail')),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _demo();
-              },
-              child: Text(context.l10n.t('auth.demo')),
-            ),
-            TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(context.l10n.t('common.done')),
             ),
@@ -59,13 +52,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (error != null) {
       _showError(error);
     }
-  }
-
-  Future<void> _demo() async {
-    final controller = ref.read(appControllerProvider);
-    final error = await controller.continueAsDemo();
-    if (!mounted) return;
-    if (error != null) _showError(error);
   }
 
   Future<void> _google() async {
@@ -219,35 +205,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            t.t('auth.or'),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    OutlinedButton.icon(
-                      key: const Key('login-demo'),
-                      onPressed: busy ? null : _demo,
-                      icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-                      label: Text(t.t('auth.demo')),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      controller.isRemote
-                          ? t.t('auth.demoLocalHint')
-                          : t.t('auth.demoHint'),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                     const SizedBox(height: 18),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

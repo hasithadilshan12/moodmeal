@@ -737,33 +737,52 @@ class _NearbyCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onFind,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.orange,
-                    minimumSize: const Size(0, 44),
-                    textStyle: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  icon: const Icon(Icons.near_me_outlined, size: 17),
-                  label: Text(t.t('meal.findNearby')),
+          // Sinhala labels ("අසල සොයන්න" / "සිතියමේ සොයන්න") are wider than
+          // English, so side-by-side buttons wrapped into two cramped lines on
+          // a phone. Stack them whenever there is not enough room for one line.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final find = FilledButton.icon(
+                onPressed: onFind,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.orange,
+                  minimumSize: const Size(0, 44),
+                  textStyle: Theme.of(context).textTheme.labelMedium,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onOrder,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 44),
-                    textStyle: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  icon: const Icon(Icons.delivery_dining_outlined, size: 18),
-                  label: Text(t.t('meal.orderDish')),
+                icon: const Icon(Icons.near_me_outlined, size: 17),
+                label: Text(
+                  t.t('meal.findNearby'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              );
+              final order = OutlinedButton.icon(
+                onPressed: onOrder,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  textStyle: Theme.of(context).textTheme.labelMedium,
+                ),
+                icon: const Icon(Icons.delivery_dining_outlined, size: 18),
+                label: Text(
+                  t.t('meal.orderDish'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+              if (constraints.maxWidth < 340) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [find, const SizedBox(height: 8), order],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: find),
+                  const SizedBox(width: 8),
+                  Expanded(child: order),
+                ],
+              );
+            },
           ),
         ],
       ),
